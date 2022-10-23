@@ -1,0 +1,22 @@
+{
+  "nodes": [
+    {
+      "id": "1",
+      "host": "172.24.2.1",
+      "port": 8000,
+      "chance": 0.5,
+      "events": 100,
+      "min_delay": 200,
+      "max_delay": 500
+    },
+    {
+      "id": "2",
+      "host": "172.24.2.2",
+      "port": 8000,
+      "chance": 0.7,
+      "events": 110,
+      "min_delay": 220,
+      "max_delay": 540
+    }
+  ]
+}

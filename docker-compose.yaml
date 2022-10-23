@@ -1,0 +1,37 @@
+version: "3.9"
+networks:
+  nodes_network:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.24.2.0/16
+services:
+  node-1:
+    container_name: node-1
+    networks:
+      nodes_network:
+        ipv4_address: 172.24.2.1
+    build: .
+    environment:
+      NODE_ID: 1
+      NODE_HOST: 172.24.2.1
+      NODE_PORT: 8000
+      NODE_CHANCE: 0.5
+      NODE_EVENTS: 100
+      NODE_MIN_DELAY: 200
+      NODE_MAX_DELAY: 500
+  node-2:
+    container_name: node-2
+    networks:
+      nodes_network:
+        ipv4_address: 172.24.2.2
+    build: .
+    environment:
+      NODE_ID: 2
+      NODE_HOST: 172.24.2.2
+      NODE_PORT: 8000
+      NODE_CHANCE: 0.7
+      NODE_EVENTS: 110
+      NODE_MIN_DELAY: 220
+      NODE_MAX_DELAY: 540

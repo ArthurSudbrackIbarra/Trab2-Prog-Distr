@@ -1,0 +1,17 @@
+{
+  "name": "trab-2-prog-distr",
+  "version": "1.0.0",
+  "description": "Trabalho 2 de Programação Distribuída.",
+  "main": "build/index.js",
+  "scripts": {
+    "generate-compose": "node build/automation/generateCompose.js",
+    "run-as-node": "node build/index.js",
+    "start": "docker compose down & npx tsc && npm run generate-compose && docker compose up --build"
+  },
+  "author": "Arthur Sudbrack Ibarra, Luiz Eduardo Mello dos Reis, Willian Magnum Albeche",
+  "license": "ISC",
+  "dependencies": {
+    "@types/node": "^18.7.16",
+    "typescript": "^4.8.3"
+  }
+}

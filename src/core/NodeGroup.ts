@@ -12,9 +12,19 @@ export class NodeGroup {
     return this.nodes.find((node) => node.getId() === id);
   }
 
+  public static getRandomNode(): Node {
+    const randomIndex = Math.floor(Math.random() * this.nodes.length);
+    return this.nodes[randomIndex];
+  }
+
+  public static getNodeIds = (): string[] => {
+    return this.nodes.map((node) => node.getId());
+  };
+
   public static markNodeAsReady(id: string): void {
     this.readyNodes.set(id, true);
   }
+
   public static areAllNodesReady(): boolean {
     return this.nodes.length === this.readyNodes.size;
   }

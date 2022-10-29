@@ -2,10 +2,11 @@ import nodes from "./configurations/nodes.json";
 import MessageManager from "./core/MessageManager";
 import Node from "./core/Node";
 import { NodeGroup } from "./core/NodeGroup";
+import VectorClock from "./core/VectorClock";
 import { Message, ReadyMessage } from "./messages/messages";
 
 /*
-    Information about the node of this instance.
+  Information about the node of this instance.
 */
 
 const NODE_ID = process.env.NODE_ID || "1";
@@ -17,7 +18,7 @@ const NODE_MIN_DELAY = parseInt(process.env.NODE_MIN_DELAY || "200");
 const NODE_MAX_DELAY = parseInt(process.env.NODE_MAX_DELAY || "500");
 
 /*
-    Adding other nodes to the node group.
+  Adding other nodes to the node group.
 */
 
 for (const node of nodes.nodes) {
@@ -28,8 +29,8 @@ for (const node of nodes.nodes) {
 }
 
 /*
-    Creating the message manager
-    and waiting for all nodes to be ready.
+  Creating the message manager to send/receive messages
+  and waiting for all nodes to be ready.
 */
 
 const messageManager = new MessageManager(NODE_PORT);
@@ -52,6 +53,7 @@ messageManager.onMulticastMessage((message) => {
     }
     if (NodeGroup.areAllNodesReady()) {
       console.log("[OK] All nodes are ready. Starting simulation...");
+      startSimulation();
     } else {
       setTimeout(() => {
         messageManager.sendMulticast(READY_MESSAGE);
@@ -61,3 +63,15 @@ messageManager.onMulticastMessage((message) => {
 });
 
 messageManager.sendMulticast(READY_MESSAGE);
+
+/*
+  OK, now all nodes are ready. Let's start the simulation.
+*/
+
+function startSimulation(): void {
+  console.log("Simulation started.");
+
+  const vectorClock = new VectorClock(NODE_ID, NodeGroup.getNodeIds());
+  vectorClock.localEvent();
+  console.log(vectorClock.serialize());
+}

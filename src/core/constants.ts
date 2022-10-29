@@ -1,0 +1,2 @@
+export const MULTICAST_ADDRESS = "230.185.192.108";
+export const MULTICAST_PORT = 41234;

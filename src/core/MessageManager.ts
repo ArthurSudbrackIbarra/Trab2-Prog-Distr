@@ -17,6 +17,8 @@ export default class MessageManager {
     this.multicastSocket = dgram.createSocket("udp4");
     this.multicastSocket.bind(MULTICAST_PORT);
     this._onMulticastMessage = (_message) => {};
+
+    this.start();
   }
 
   public onUnicastMessage(func: (message: string) => void): void {
@@ -26,7 +28,7 @@ export default class MessageManager {
     this._onMulticastMessage = func;
   }
 
-  public start(): void {
+  private start(): void {
     this.unicastSocket.on("message", (message) => {
       this._onUnicastMessage(message.toString());
     });

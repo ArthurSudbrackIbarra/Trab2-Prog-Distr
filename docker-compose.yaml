@@ -35,3 +35,17 @@ services:
       NODE_EVENTS: 110
       NODE_MIN_DELAY: 220
       NODE_MAX_DELAY: 540
+  node-3:
+    container_name: node-3
+    networks:
+      nodes_network:
+        ipv4_address: 172.24.2.3
+    build: .
+    environment:
+      NODE_ID: 3
+      NODE_HOST: 172.24.2.3
+      NODE_PORT: 8000
+      NODE_CHANCE: 0.79
+      NODE_EVENTS: 120
+      NODE_MIN_DELAY: 320
+      NODE_MAX_DELAY: 640

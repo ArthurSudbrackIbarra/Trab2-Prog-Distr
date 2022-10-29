@@ -17,6 +17,15 @@
       "events": 110,
       "min_delay": 220,
       "max_delay": 540
+    },
+    {
+      "id": "3",
+      "host": "172.24.2.3",
+      "port": 8000,
+      "chance": 0.79,
+      "events": 120,
+      "min_delay": 320,
+      "max_delay": 640
     }
   ]
 }

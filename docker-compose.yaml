@@ -7,45 +7,45 @@ networks:
       config:
         - subnet: 172.24.2.0/16
 services:
-  node-1:
-    container_name: node-1
+  node-arthur:
+    container_name: node-arthur
     networks:
       nodes_network:
         ipv4_address: 172.24.2.1
     build: .
     environment:
-      NODE_ID: 1
+      NODE_ID: arthur
       NODE_HOST: 172.24.2.1
       NODE_PORT: 8000
       NODE_CHANCE: 0.5
       NODE_EVENTS: 100
-      NODE_MIN_DELAY: 200
-      NODE_MAX_DELAY: 500
-  node-2:
-    container_name: node-2
+      NODE_MIN_DELAY: 1500
+      NODE_MAX_DELAY: 2000
+  node-willian:
+    container_name: node-willian
     networks:
       nodes_network:
         ipv4_address: 172.24.2.2
     build: .
     environment:
-      NODE_ID: 2
+      NODE_ID: willian
       NODE_HOST: 172.24.2.2
       NODE_PORT: 8000
       NODE_CHANCE: 0.7
       NODE_EVENTS: 110
-      NODE_MIN_DELAY: 220
-      NODE_MAX_DELAY: 540
-  node-3:
-    container_name: node-3
+      NODE_MIN_DELAY: 1500
+      NODE_MAX_DELAY: 2000
+  node-luiz:
+    container_name: node-luiz
     networks:
       nodes_network:
         ipv4_address: 172.24.2.3
     build: .
     environment:
-      NODE_ID: 3
+      NODE_ID: luiz
       NODE_HOST: 172.24.2.3
       NODE_PORT: 8000
       NODE_CHANCE: 0.79
       NODE_EVENTS: 120
-      NODE_MIN_DELAY: 320
-      NODE_MAX_DELAY: 640
+      NODE_MIN_DELAY: 1500
+      NODE_MAX_DELAY: 2000

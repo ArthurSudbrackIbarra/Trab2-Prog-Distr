@@ -42,21 +42,27 @@ export default class MessageManager {
     });
   }
 
-  public sendUnicast(message: any, node: Node): void {
+  public sendUnicast(message: any, node: Node, print = false): void {
     const jsonMessage = JSON.stringify(message);
     this.unicastSocket.send(
       Buffer.from(jsonMessage),
       node.getPort(),
       node.getHost()
     );
+    if (print) {
+      console.log(`Sending Unicast to ${node.getId()}: ${jsonMessage}`);
+    }
   }
 
-  public sendMulticast(message: any): void {
+  public sendMulticast(message: any, print = false): void {
     const jsonMessage = JSON.stringify(message);
     this.multicastSocket.send(
       Buffer.from(jsonMessage),
       MULTICAST_PORT,
       MULTICAST_ADDRESS
     );
+    if (print) {
+      console.log(`Sending Multicast: ${jsonMessage}`);
+    }
   }
 }

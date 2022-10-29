@@ -1,3 +1,5 @@
+import { BLUE, RESET } from "../utils/colors";
+
 export default class VectorClock {
   private nodeId: string;
   private nodeIds: string[];
@@ -6,11 +8,8 @@ export default class VectorClock {
   constructor(nodeId: string, nodeIds: string[]) {
     this.nodeId = nodeId;
     this.nodeIds = nodeIds;
-    this.clock = new Map<string, number>();
-    this.mountClockMap();
-  }
 
-  private mountClockMap(): void {
+    this.clock = new Map<string, number>();
     this.nodeIds.forEach((id) => {
       if (!this.clock.has(id)) {
         this.clock.set(id, 0);
@@ -18,9 +17,21 @@ export default class VectorClock {
     });
   }
 
-  public localEvent(): void {
+  public increment(): void {
     const currentValue = this.clock.get(this.nodeId) || 0;
     this.clock.set(this.nodeId, currentValue + 1);
+  }
+
+  public update(clock: Map<string, number>): void {
+    clock.forEach((clockValue, nodeId) => {
+      const currentClockValue = this.clock.get(nodeId) || 0;
+      if (nodeId === this.nodeId) {
+        return;
+      }
+      if (clockValue > currentClockValue) {
+        this.clock.set(nodeId, clockValue);
+      }
+    });
   }
 
   public serialize(): any {
@@ -31,12 +42,15 @@ export default class VectorClock {
     return serializedClock;
   }
 
-  public deserialize(serializedClock: string): Map<string, number> {
-    const parsedClock = JSON.parse(serializedClock);
+  public deserialize(serializedClock: any): Map<string, number> {
     const deserializedClock = new Map<string, number>();
-    Object.keys(parsedClock).forEach((key) => {
-      deserializedClock.set(key, parsedClock[key]);
+    Object.keys(serializedClock).forEach((key) => {
+      deserializedClock.set(key, serializedClock[key]);
     });
     return deserializedClock;
+  }
+
+  public toString(): string {
+    return `${BLUE}${JSON.stringify(this.serialize())}${RESET}`;
   }
 }

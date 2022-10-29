@@ -1,31 +1,31 @@
 {
   "nodes": [
     {
-      "id": "1",
+      "id": "arthur",
       "host": "172.24.2.1",
       "port": 8000,
       "chance": 0.5,
       "events": 100,
-      "min_delay": 200,
-      "max_delay": 500
+      "min_delay": 1500,
+      "max_delay": 2000
     },
     {
-      "id": "2",
+      "id": "willian",
       "host": "172.24.2.2",
       "port": 8000,
       "chance": 0.7,
       "events": 110,
-      "min_delay": 220,
-      "max_delay": 540
+      "min_delay": 1500,
+      "max_delay": 2000
     },
     {
-      "id": "3",
+      "id": "luiz",
       "host": "172.24.2.3",
       "port": 8000,
       "chance": 0.79,
       "events": 120,
-      "min_delay": 320,
-      "max_delay": 640
+      "min_delay": 1500,
+      "max_delay": 2000
     }
   ]
 }

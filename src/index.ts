@@ -3,7 +3,8 @@ import MessageManager from "./core/MessageManager";
 import Node from "./core/Node";
 import { NodeGroup } from "./core/NodeGroup";
 import VectorClock from "./core/VectorClock";
-import { Message, ReadyMessage } from "./messages/messages";
+import { ClockMessage, Message, ReadyMessage } from "./messages/messages";
+import { GREEN, RESET } from "./utils/colors";
 
 /*
   Information about the node of this instance.
@@ -33,6 +34,8 @@ for (const node of nodes.nodes) {
   and waiting for all nodes to be ready.
 */
 
+// TODO: Fix this logic.
+
 const messageManager = new MessageManager(NODE_PORT);
 console.log("Waiting for all nodes to be ready...");
 
@@ -52,12 +55,14 @@ messageManager.onMulticastMessage((message) => {
       NodeGroup.markNodeAsReady(readyMessage.nodeId);
     }
     if (NodeGroup.areAllNodesReady()) {
-      console.log("[OK] All nodes are ready. Starting simulation...");
+      console.log(
+        `${GREEN}[OK]${RESET} All nodes are ready. Starting simulation...`
+      );
       startSimulation();
     } else {
       setTimeout(() => {
         messageManager.sendMulticast(READY_MESSAGE);
-      }, 1000);
+      }, 50);
     }
   }
 });
@@ -68,10 +73,66 @@ messageManager.sendMulticast(READY_MESSAGE);
   OK, now all nodes are ready. Let's start the simulation.
 */
 
-function startSimulation(): void {
-  console.log("Simulation started.");
-
+async function startSimulation(): Promise<void> {
   const vectorClock = new VectorClock(NODE_ID, NodeGroup.getNodeIds());
-  vectorClock.localEvent();
-  console.log(vectorClock.serialize());
+  let events = 0;
+
+  /*
+    What to do when receiving a clock message.
+  */
+
+  messageManager.onUnicastMessage((message) => {
+    console.log(`Received message: ${message}`);
+    const parsedMessage = JSON.parse(message) as Message;
+    if (parsedMessage.type === "clock") {
+      const clockMessage = parsedMessage as ClockMessage;
+      const otherClock = vectorClock.deserialize(clockMessage.clock);
+      vectorClock.update(otherClock);
+      console.log(`Clock after update: ${vectorClock.toString()}`);
+    }
+  });
+
+  /*
+    Loop until the max number of events is reached.
+  */
+
+  while (events < NODE_EVENTS) {
+    /*
+      Chance of local or remote event.
+    */
+    let eventType = "local";
+    if (Math.random() >= NODE_CHANCE) {
+      eventType = "remote";
+    }
+    /*
+      Increment the clock.
+    */
+    vectorClock.increment();
+    if (eventType === "local") {
+      /*
+        Local event.
+      */
+      console.log(`Local event: ${vectorClock.toString()}`);
+    } else {
+      /*
+        Remote event.
+      */
+      console.log(`Remote event: ${vectorClock.toString()}`);
+      const randomNode = NodeGroup.getRandomNode();
+      const clockMessage: ClockMessage = {
+        type: "clock",
+        nodeId: NODE_ID,
+        clock: vectorClock.serialize(),
+      };
+      messageManager.sendUnicast(clockMessage, randomNode, true);
+    }
+    /*
+      Wait a random time before the next event.
+    */
+    const randomDelay = Math.floor(
+      Math.random() * (NODE_MAX_DELAY - NODE_MIN_DELAY) + NODE_MIN_DELAY
+    );
+    await new Promise((resolve) => setTimeout(resolve, randomDelay));
+    events++;
+  }
 }

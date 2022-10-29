@@ -17,9 +17,9 @@ export class NodeGroup {
     return this.nodes[randomIndex];
   }
 
-  public static getNodeIds = (): string[] => {
+  public static getNodeIds(): string[] {
     return this.nodes.map((node) => node.getId());
-  };
+  }
 
   public static markNodeAsReady(id: string): void {
     this.readyNodes.set(id, true);

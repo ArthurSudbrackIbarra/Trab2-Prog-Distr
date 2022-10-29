@@ -4,12 +4,11 @@ import Node from "./core/Node";
 import { NodeGroup } from "./core/NodeGroup";
 import VectorClock from "./core/VectorClock";
 import { ClockMessage, Message, ReadyMessage } from "./messages/messages";
-import { GREEN, RESET } from "./utils/colors";
+import { BLUE, GREEN, RESET } from "./utils/colors";
 
 /*
   Information about the node of this instance.
 */
-
 const NODE_ID = process.env.NODE_ID || "1";
 const NODE_PORT = parseInt(process.env.NODE_PORT || "8000");
 const NODE_HOST = process.env.NODE_HOST || "172.24.2.1";
@@ -17,11 +16,11 @@ const NODE_CHANCE = parseFloat(process.env.NODE_CHANCE || "0.5");
 const NODE_EVENTS = parseInt(process.env.NODE_EVENTS || "100");
 const NODE_MIN_DELAY = parseInt(process.env.NODE_MIN_DELAY || "200");
 const NODE_MAX_DELAY = parseInt(process.env.NODE_MAX_DELAY || "500");
+console.log(`[${BLUE}STARTED${RESET}] ${NODE_ID} | ${NODE_HOST}:${NODE_PORT}`);
 
 /*
   Adding other nodes to the node group.
 */
-
 for (const node of nodes.nodes) {
   if (node.id !== NODE_ID) {
     const otherNode = new Node(node.id, node.host, node.port);
@@ -33,9 +32,7 @@ for (const node of nodes.nodes) {
   Creating the message manager to send/receive messages
   and waiting for all nodes to be ready.
 */
-
 // TODO: Fix this logic.
-
 const messageManager = new MessageManager(NODE_PORT);
 console.log("Waiting for all nodes to be ready...");
 
@@ -56,7 +53,7 @@ messageManager.onMulticastMessage((message) => {
     }
     if (NodeGroup.areAllNodesReady()) {
       console.log(
-        `${GREEN}[OK]${RESET} All nodes are ready. Starting simulation...`
+        `[${GREEN}OK${RESET}] All nodes are ready. Starting simulation...`
       );
       startSimulation();
     } else {
@@ -70,17 +67,14 @@ messageManager.onMulticastMessage((message) => {
 messageManager.sendMulticast(READY_MESSAGE);
 
 /*
-  OK, now all nodes are ready. Let's start the simulation.
+  OK, now all nodes are ready. The simulation can start.
 */
-
 async function startSimulation(): Promise<void> {
   const vectorClock = new VectorClock(NODE_ID, NodeGroup.getNodeIds());
   let events = 0;
-
   /*
     What to do when receiving a clock message.
   */
-
   messageManager.onUnicastMessage((message) => {
     console.log(`Received message: ${message}`);
     const parsedMessage = JSON.parse(message) as Message;
@@ -91,11 +85,9 @@ async function startSimulation(): Promise<void> {
       console.log(`Clock after update: ${vectorClock.toString()}`);
     }
   });
-
   /*
     Loop until the max number of events is reached.
   */
-
   while (events < NODE_EVENTS) {
     /*
       Chance of local or remote event.
@@ -135,4 +127,5 @@ async function startSimulation(): Promise<void> {
     await new Promise((resolve) => setTimeout(resolve, randomDelay));
     events++;
   }
+  console.log(`${GREEN}[OK]${RESET} Simulation finished.`);
 }

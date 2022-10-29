@@ -50,7 +50,7 @@ export default class MessageManager {
       node.getHost()
     );
     if (print) {
-      console.log(`Sending Unicast to ${node.getId()}: ${jsonMessage}`);
+      console.log(`Sending unicast to "${node.getId()}": ${jsonMessage}`);
     }
   }
 
@@ -62,7 +62,7 @@ export default class MessageManager {
       MULTICAST_ADDRESS
     );
     if (print) {
-      console.log(`Sending Multicast: ${jsonMessage}`);
+      console.log(`Sending multicast: ${jsonMessage}`);
     }
   }
 }

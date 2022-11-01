@@ -1,25 +1,29 @@
 import Node from "./Node";
 
-export class NodesTopology {
-  private static nodes: Node[] = [];
+export default class NodesTopology {
+  private nodes: Node[];
 
-  public static addNode(node: Node): void {
+  constructor() {
+    this.nodes = [];
+  }
+
+  public addNode(node: Node): void {
     this.nodes.push(node);
   }
 
-  public static getNodesCount(): number {
+  public getNodesCount(): number {
     return this.nodes.length;
   }
 
-  public static getNodeById(id: string): Node | undefined {
+  public getNodeById(id: string): Node | undefined {
     return this.nodes.find((node) => node.getId() === id);
   }
 
-  public static getNodeIds(): string[] {
+  public getNodeIds(): string[] {
     return this.nodes.map((node) => node.getId());
   }
 
-  public static getRandomNode(): Node {
+  public getRandomNode(): Node {
     const randomIndex = Math.floor(Math.random() * this.nodes.length);
     return this.nodes[randomIndex];
   }

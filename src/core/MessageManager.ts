@@ -4,33 +4,35 @@ import Node from "./Node";
 
 export default class MessageManager {
   private unicastSocket: Socket;
-  private _onUnicastMessage: (message: string) => void;
+  private _onUnicastMessage: ((message: string) => void) | null;
 
   private multicastSocket: Socket;
-  private _onMulticastMessage: (message: string) => void;
+  private _onMulticastMessage: ((message: string) => void) | null;
 
   constructor(unicastSocketPort: number) {
     this.unicastSocket = dgram.createSocket("udp4");
     this.unicastSocket.bind(unicastSocketPort);
-    this._onUnicastMessage = (_message) => {};
+    this._onUnicastMessage = null;
 
     this.multicastSocket = dgram.createSocket("udp4");
     this.multicastSocket.bind(MULTICAST_PORT);
-    this._onMulticastMessage = (_message) => {};
+    this._onMulticastMessage = null;
 
     this.start();
   }
 
-  public onUnicastMessage(func: (message: string) => void): void {
+  public onUnicastMessage(func: ((message: string) => void) | null): void {
     this._onUnicastMessage = func;
   }
-  public onMulticastMessage(func: (message: string) => void): void {
+  public onMulticastMessage(func: ((message: string) => void) | null): void {
     this._onMulticastMessage = func;
   }
 
   private start(): void {
     this.unicastSocket.on("message", (message) => {
-      this._onUnicastMessage(message.toString());
+      if (this._onUnicastMessage) {
+        this._onUnicastMessage(message.toString());
+      }
     });
     this.multicastSocket.on("listening", () => {
       this.multicastSocket.setBroadcast(true);
@@ -38,7 +40,9 @@ export default class MessageManager {
       this.multicastSocket.addMembership(MULTICAST_ADDRESS);
     });
     this.multicastSocket.on("message", (message) => {
-      this._onMulticastMessage(message.toString());
+      if (this._onMulticastMessage) {
+        this._onMulticastMessage(message.toString());
+      }
     });
   }
 

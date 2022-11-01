@@ -3,7 +3,12 @@ import MessageManager from "./core/MessageManager";
 import Node from "./core/Node";
 import { NodeGroup } from "./core/NodeGroup";
 import VectorClock from "./core/VectorClock";
-import { ClockMessage, Message, ReadyMessage } from "./messages/messages";
+import {
+  AllReadyMessage,
+  ClockMessage,
+  Message,
+  ReadyMessage,
+} from "./messages/messages";
 import { BLUE, GREEN, RESET } from "./utils/colors";
 
 /*
@@ -32,7 +37,6 @@ for (const node of nodes.nodes) {
   Creating the message manager to send/receive messages
   and waiting for all nodes to be ready.
 */
-// TODO: Fix this logic.
 const messageManager = new MessageManager(NODE_PORT);
 console.log("Waiting for all nodes to be ready...");
 
@@ -40,11 +44,12 @@ const READY_MESSAGE: ReadyMessage = {
   type: "ready",
   nodeId: NODE_ID,
 };
+const ALL_READY_MESSAGE: AllReadyMessage = {
+  type: "allReady",
+  nodeId: NODE_ID,
+};
 
 messageManager.onMulticastMessage((message) => {
-  if (NodeGroup.areAllNodesReady()) {
-    return;
-  }
   const parsedMessage = JSON.parse(message) as Message;
   if (parsedMessage.type === "ready") {
     const readyMessage = parsedMessage as ReadyMessage;
@@ -53,14 +58,22 @@ messageManager.onMulticastMessage((message) => {
     }
     if (NodeGroup.areAllNodesReady()) {
       console.log(
-        `[${GREEN}OK${RESET}] All nodes are ready. Starting simulation...`
+        `[${GREEN}OK${RESET}] All nodes are ready. Sending all-ready multicast message and starting simulation.`
       );
+      messageManager.onMulticastMessage(null);
+      messageManager.sendMulticast(ALL_READY_MESSAGE);
       startSimulation();
     } else {
       setTimeout(() => {
         messageManager.sendMulticast(READY_MESSAGE);
-      }, 50);
+      }, 500);
     }
+  } else if (parsedMessage.type === "allReady") {
+    console.log(
+      `[${GREEN}OK${RESET}] All nodes are ready. Starting simulation.`
+    );
+    messageManager.onMulticastMessage(null);
+    startSimulation();
   }
 });
 

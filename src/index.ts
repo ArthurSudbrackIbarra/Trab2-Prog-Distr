@@ -1,7 +1,7 @@
 import nodes from "./configurations/nodes.json";
 import MessageManager from "./core/MessageManager";
 import Node from "./core/Node";
-import { NodeGroup } from "./core/NodeGroup";
+import { NodesTopology } from "./core/NodesTopology";
 import VectorClock from "./core/VectorClock";
 import {
   AllReadyMessage,
@@ -28,8 +28,8 @@ console.log(`[${BLUE}STARTED${RESET}] ${NODE_ID} | ${NODE_HOST}:${NODE_PORT}`);
 */
 for (const node of nodes.nodes) {
   if (node.id !== NODE_ID) {
-    const otherNode = new Node(node.id, node.host, node.port);
-    NodeGroup.addNode(otherNode);
+    const friendNode = new Node(node.id, node.host, node.port);
+    NodesTopology.addNode(friendNode);
   }
 }
 
@@ -40,6 +40,7 @@ for (const node of nodes.nodes) {
 const messageManager = new MessageManager(NODE_PORT);
 console.log("Waiting for all nodes to be ready...");
 
+const readyNodes: string[] = [];
 const READY_MESSAGE: ReadyMessage = {
   type: "ready",
   nodeId: NODE_ID,
@@ -54,11 +55,11 @@ messageManager.onMulticastMessage((message) => {
   if (parsedMessage.type === "ready") {
     const readyMessage = parsedMessage as ReadyMessage;
     if (readyMessage.nodeId !== NODE_ID) {
-      NodeGroup.markNodeAsReady(readyMessage.nodeId);
+      readyNodes.push(readyMessage.nodeId);
     }
-    if (NodeGroup.areAllNodesReady()) {
+    if (readyNodes.length === NodesTopology.getNodesCount()) {
       console.log(
-        `[${GREEN}OK${RESET}] All nodes are ready. Sending all-ready multicast message and starting simulation.`
+        `[${GREEN}OK${RESET}] All nodes are ready. Sending "all ready" multicast message and starting simulation.`
       );
       messageManager.onMulticastMessage(null);
       messageManager.sendMulticast(ALL_READY_MESSAGE);
@@ -70,7 +71,7 @@ messageManager.onMulticastMessage((message) => {
     }
   } else if (parsedMessage.type === "allReady") {
     console.log(
-      `[${GREEN}OK${RESET}] All nodes are ready. Starting simulation.`
+      `[${GREEN}OK${RESET}] All nodes are ready [via "all ready" multicast message]. Starting simulation.`
     );
     messageManager.onMulticastMessage(null);
     startSimulation();
@@ -83,7 +84,7 @@ messageManager.sendMulticast(READY_MESSAGE);
   OK, now all nodes are ready. The simulation can start.
 */
 async function startSimulation(): Promise<void> {
-  const vectorClock = new VectorClock(NODE_ID, NodeGroup.getNodeIds());
+  const vectorClock = new VectorClock(NODE_ID, NodesTopology.getNodeIds());
   let events = 0;
   /*
     What to do when receiving a clock message.
@@ -123,7 +124,7 @@ async function startSimulation(): Promise<void> {
         Remote event.
       */
       console.log(`Remote event: ${vectorClock.toString()}`);
-      const randomNode = NodeGroup.getRandomNode();
+      const randomNode = NodesTopology.getRandomNode();
       const clockMessage: ClockMessage = {
         type: "clock",
         nodeId: NODE_ID,

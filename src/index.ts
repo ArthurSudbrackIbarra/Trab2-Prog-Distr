@@ -4,12 +4,13 @@ import Node from "./core/Node";
 import NodesTopology from "./core/NodesTopology";
 import VectorClock from "./core/VectorClock";
 import {
+  ACKMessage,
   AllReadyMessage,
   ClockMessage,
   Message,
   ReadyMessage,
 } from "./messages/messages";
-import { BLUE, GREEN, RESET } from "./utils/colors";
+import { BLUE, GREEN, RED, RESET } from "./utils/colors";
 
 /*
   Information about the node of this instance.
@@ -72,13 +73,12 @@ messageManager.onMulticastMessage((message) => {
     }
   } else if (parsedMessage.type === "allReady") {
     console.log(
-      `[${GREEN}OK${RESET}] All nodes are ready [via "all ready" multicast message]. Starting simulation.`
+      `[${GREEN}OK${RESET}] All nodes are ready - via "all ready" multicast message. Starting simulation.`
     );
     messageManager.onMulticastMessage(null);
     startSimulation();
   }
 });
-
 messageManager.sendMulticast(READY_MESSAGE);
 
 /*
@@ -87,6 +87,8 @@ messageManager.sendMulticast(READY_MESSAGE);
 async function startSimulation(): Promise<void> {
   const vectorClock = new VectorClock(NODE_ID, nodesTopology.getNodeIds());
   let events = 0;
+  let ackMap = new Map<string, number>();
+  startACKsCheckRoutine(ackMap);
   /*
     What to do when receiving a clock message.
   */
@@ -98,6 +100,21 @@ async function startSimulation(): Promise<void> {
       const otherClock = vectorClock.deserialize(clockMessage.clock);
       vectorClock.update(otherClock);
       console.log(`Clock after update: ${vectorClock.toString()}`);
+      /*
+        Sending an ACK message.
+      */
+      const ACK_MESSAGE: ACKMessage = {
+        type: "ack",
+        nodeId: NODE_ID,
+        replyMessageId: clockMessage.messageId as string,
+      };
+      const friendNode = nodesTopology.getNodeById(clockMessage.nodeId);
+      if (friendNode) {
+        messageManager.sendUnicast(ACK_MESSAGE, friendNode);
+      }
+    } else if (parsedMessage.type === "ack") {
+      const ackMessage = parsedMessage as ACKMessage;
+      ackMap.delete(ackMessage.replyMessageId);
     }
   });
   /*
@@ -131,7 +148,12 @@ async function startSimulation(): Promise<void> {
         nodeId: NODE_ID,
         clock: vectorClock.serialize(),
       };
-      messageManager.sendUnicast(clockMessage, randomNode, true);
+      const messageId = messageManager.sendUnicast(
+        clockMessage,
+        randomNode,
+        true
+      );
+      ackMap.set(messageId, Date.now());
     }
     /*
       Wait a random time before the next event.
@@ -143,4 +165,20 @@ async function startSimulation(): Promise<void> {
     events++;
   }
   console.log(`${GREEN}[OK]${RESET} Simulation finished.`);
+}
+
+/*
+  Routine to keep checking if the messages being sent are being acknowledged.
+*/
+function startACKsCheckRoutine(ackMap: Map<string, number>) {
+  setInterval(() => {
+    ackMap.forEach((time, messageId) => {
+      if (Date.now() - time > 2000) {
+        console.log(
+          `[${RED}ERROR${RESET}] Message "${messageId}" was not acknowledged. Terminating.`
+        );
+        process.exit(0);
+      }
+    });
+  }, 2000);
 }

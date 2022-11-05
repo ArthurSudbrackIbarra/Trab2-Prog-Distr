@@ -1,4 +1,6 @@
 import dgram, { Socket } from "dgram";
+import crypto from "crypto";
+import { Message } from "../messages/messages";
 import { MULTICAST_ADDRESS, MULTICAST_PORT } from "./constants";
 import Node from "./Node";
 
@@ -46,7 +48,8 @@ export default class MessageManager {
     });
   }
 
-  public sendUnicast(message: any, node: Node, print = false): void {
+  public sendUnicast(message: Message, node: Node, print = false): string {
+    message.messageId = crypto.randomBytes(16).toString("hex");
     const jsonMessage = JSON.stringify(message);
     this.unicastSocket.send(
       Buffer.from(jsonMessage),
@@ -56,9 +59,11 @@ export default class MessageManager {
     if (print) {
       console.log(`Sending unicast to "${node.getId()}": ${jsonMessage}`);
     }
+    return message.messageId;
   }
 
-  public sendMulticast(message: any, print = false): void {
+  public sendMulticast(message: Message, print = false): string {
+    message.messageId = crypto.randomBytes(16).toString("hex");
     const jsonMessage = JSON.stringify(message);
     this.multicastSocket.send(
       Buffer.from(jsonMessage),
@@ -68,5 +73,6 @@ export default class MessageManager {
     if (print) {
       console.log(`Sending multicast: ${jsonMessage}`);
     }
+    return message.messageId;
   }
 }

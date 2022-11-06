@@ -101,7 +101,7 @@ async function startSimulation(): Promise<void> {
       console.log(
         `${NODE_ID} ${vectorClock.toString()} R ${
           clockMessage.nodeId
-        } ${JSON.stringify(clockMessage.clock)}`
+        } ${otherClock.get(clockMessage.nodeId)}`
       );
       /*
         Sending an ACK message.

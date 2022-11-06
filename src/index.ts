@@ -56,7 +56,10 @@ messageManager.onMulticastMessage((message) => {
   const parsedMessage = JSON.parse(message) as Message;
   if (parsedMessage.type === "ready") {
     const readyMessage = parsedMessage as ReadyMessage;
-    if (readyMessage.nodeId !== NODE_ID) {
+    if (
+      readyMessage.nodeId !== NODE_ID &&
+      !readyNodes.includes(readyMessage.nodeId)
+    ) {
       readyNodes.push(readyMessage.nodeId);
     }
     if (readyNodes.length === nodesTopology.getNodesCount()) {

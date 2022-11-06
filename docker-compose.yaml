@@ -18,7 +18,7 @@ services:
       NODE_HOST: 172.24.2.1
       NODE_PORT: 8000
       NODE_CHANCE: 0.5
-      NODE_EVENTS: 100
+      NODE_EVENTS: 20
       NODE_MIN_DELAY: 1500
       NODE_MAX_DELAY: 2000
   node-willian:
@@ -32,7 +32,7 @@ services:
       NODE_HOST: 172.24.2.2
       NODE_PORT: 8000
       NODE_CHANCE: 0.7
-      NODE_EVENTS: 110
+      NODE_EVENTS: 25
       NODE_MIN_DELAY: 1500
       NODE_MAX_DELAY: 2000
   node-luiz:
@@ -46,6 +46,6 @@ services:
       NODE_HOST: 172.24.2.3
       NODE_PORT: 8000
       NODE_CHANCE: 0.79
-      NODE_EVENTS: 120
+      NODE_EVENTS: 30
       NODE_MIN_DELAY: 1500
       NODE_MAX_DELAY: 2000

@@ -93,13 +93,16 @@ async function startSimulation(): Promise<void> {
     What to do when receiving a clock message.
   */
   messageManager.onUnicastMessage((message) => {
-    console.log(`Received message: ${message}`);
     const parsedMessage = JSON.parse(message) as Message;
     if (parsedMessage.type === "clock") {
       const clockMessage = parsedMessage as ClockMessage;
       const otherClock = vectorClock.deserialize(clockMessage.clock);
       vectorClock.update(otherClock);
-      console.log(`Clock after update: ${vectorClock.toString()}`);
+      console.log(
+        `${NODE_ID} ${vectorClock.toString()} R ${
+          clockMessage.nodeId
+        } ${JSON.stringify(clockMessage.clock)}`
+      );
       /*
         Sending an ACK message.
       */
@@ -136,24 +139,22 @@ async function startSimulation(): Promise<void> {
       /*
         Local event.
       */
-      console.log(`Local event: ${vectorClock.toString()}`);
+      console.log(`${NODE_ID} ${vectorClock.toString()} L`);
     } else {
       /*
         Remote event.
       */
-      console.log(`Remote event: ${vectorClock.toString()}`);
       const randomNode = nodesTopology.getRandomNode();
       const clockMessage: ClockMessage = {
         type: "clock",
         nodeId: NODE_ID,
         clock: vectorClock.serialize(),
       };
-      const messageId = messageManager.sendUnicast(
-        clockMessage,
-        randomNode,
-        true
-      );
+      const messageId = messageManager.sendUnicast(clockMessage, randomNode);
       ackMap.set(messageId, Date.now());
+      console.log(
+        `${NODE_ID} ${vectorClock.toString()} S ${randomNode.getId()}`
+      );
     }
     /*
       Wait a random time before the next event.
@@ -165,6 +166,7 @@ async function startSimulation(): Promise<void> {
     events++;
   }
   console.log(`${GREEN}[OK]${RESET} Simulation finished.`);
+  process.exit(0);
 }
 
 /*
@@ -173,12 +175,12 @@ async function startSimulation(): Promise<void> {
 function startACKsCheckRoutine(ackMap: Map<string, number>) {
   setInterval(() => {
     ackMap.forEach((time, messageId) => {
-      if (Date.now() - time > 2000) {
+      if (Date.now() - time > 2500) {
         console.log(
-          `[${RED}ERROR${RESET}] Message "${messageId}" was not acknowledged. Terminating.`
+          `[${RED}TERMINATING${RESET}] Message with ID "${messageId}" was not acknowledged. Terminating.`
         );
         process.exit(0);
       }
     });
-  }, 2000);
+  }, 500);
 }

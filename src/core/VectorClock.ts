@@ -1,5 +1,3 @@
-import { BLUE, RESET } from "../utils/colors";
-
 export default class VectorClock {
   private nodeId: string;
   private nodeIds: string[];
@@ -51,6 +49,6 @@ export default class VectorClock {
   }
 
   public toString(): string {
-    return `${BLUE}${JSON.stringify(this.serialize())}${RESET}`;
+    return JSON.stringify(this.serialize());
   }
 }

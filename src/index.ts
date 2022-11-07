@@ -13,7 +13,7 @@ import {
 import { BLUE, GREEN, RED, RESET } from "./utils/colors";
 
 /*
-  Information about the node of this instance.
+  Information about this node.
 */
 const NODE_ID = process.env.NODE_ID || "1";
 const NODE_PORT = parseInt(process.env.NODE_PORT || "8000");
@@ -25,7 +25,7 @@ const NODE_MAX_DELAY = parseInt(process.env.NODE_MAX_DELAY || "500");
 console.log(`[${BLUE}STARTED${RESET}] ${NODE_ID} | ${NODE_HOST}:${NODE_PORT}`);
 
 /*
-  Adding other nodes to the node group.
+  Adding other nodes to the nodes topology.
 */
 const nodesTopology = new NodesTopology();
 for (const node of nodes.nodes) {
@@ -93,11 +93,14 @@ async function startSimulation(): Promise<void> {
   let ackMap = new Map<string, number>();
   startACKsCheckRoutine(ackMap);
   /*
-    What to do when receiving a clock message.
+    What to do when receiving an unicast message?
   */
   messageManager.onUnicastMessage((message) => {
     const parsedMessage = JSON.parse(message) as Message;
     if (parsedMessage.type === "clock") {
+      /*
+        Received a clock message. Updating my vector clock and sending an ACK.
+      */
       const clockMessage = parsedMessage as ClockMessage;
       const otherClock = vectorClock.deserialize(clockMessage.clock);
       vectorClock.update(otherClock);
@@ -106,9 +109,6 @@ async function startSimulation(): Promise<void> {
           clockMessage.nodeId
         } ${otherClock.get(clockMessage.nodeId)}`
       );
-      /*
-        Sending an ACK message.
-      */
       const ACK_MESSAGE: ACKMessage = {
         type: "ack",
         nodeId: NODE_ID,
@@ -119,6 +119,9 @@ async function startSimulation(): Promise<void> {
         messageManager.sendUnicast(ACK_MESSAGE, friendNode);
       }
     } else if (parsedMessage.type === "ack") {
+      /*
+        Received an ACK message. Updating the ACK map.
+      */
       const ackMessage = parsedMessage as ACKMessage;
       ackMap.delete(ackMessage.replyMessageId);
     }
@@ -127,15 +130,13 @@ async function startSimulation(): Promise<void> {
     Loop until the max number of events is reached.
   */
   while (events < NODE_EVENTS) {
-    /*
-      Chance of local or remote event.
-    */
     let eventType = "local";
     if (Math.random() >= NODE_CHANCE) {
       eventType = "remote";
     }
     /*
       Increment the clock.
+      The clock is always incremented regardless of the event type.
     */
     vectorClock.increment();
     if (eventType === "local") {
